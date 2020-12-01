@@ -146,6 +146,14 @@ class Employee(AbstractUser):
     def __str__(self):
         return self.name
 
+    @property
+    def created_at(self):
+        return '0'
+
+    # @property.setter
+    # def created_at(self, value):
+    #     pass
+
 
 class Item(models.Model):
     class Meta:

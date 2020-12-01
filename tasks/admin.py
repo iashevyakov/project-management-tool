@@ -5,6 +5,7 @@ from django.contrib import admin, auth
 from django.db import models
 from django.forms import Textarea
 
+from .filters import EmployeeFilter, ProjectFilter, SprintFilter
 from .lib import PmPermissionMixin, get_employee_tasks, get_employee_subordinates
 from .models import Task, Item, Employee, Project, Sprint, Dates
 from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
@@ -82,14 +83,14 @@ class ProjectAdmin(AdminAdvancedFiltersMixin, admin.ModelAdmin, PmPermissionMixi
 
 
 class SprintAdmin(AdminAdvancedFiltersMixin, admin.ModelAdmin, PmPermissionMixin):
-    list_display = ('title', 'created_at', 'date_start', 'status', 'date_end', 'last_modified')
+    list_display = ('project', 'title', 'created_at', 'date_start', 'status', 'date_end', 'last_modified')
     list_display_links = ('title',)
     search_fields = ('title', 'status')
 
     list_filter = (
         'date_start',
         'date_end',
-        'status'
+        'status',
     )
 
     advanced_filter_fields = (
@@ -157,8 +158,8 @@ class TaskAdmin(AdminAdvancedFiltersMixin, admin.ModelAdmin):
     search_fields = ('id', 'title',
                      'employee__name', 'priority', 'state')
     list_filter = (
-        ('employee', RelatedDropdownFilter),
-        ('project', RelatedDropdownFilter),
+        ('employee', EmployeeFilter),
+        ('project', ProjectFilter),
         ('sprint', RelatedDropdownFilter),
         ('state', UnionFieldListFilter),
         ('priority', UnionFieldListFilter),
@@ -237,6 +238,8 @@ class TaskAdmin(AdminAdvancedFiltersMixin, admin.ModelAdmin):
         if not kwargs['obj'] in request.user.tasks_assigned.all():
             employee_ids = [e.id for e in get_employee_subordinates(request.user)]
             context['adminform'].form.fields['employee'].queryset = Employee.objects.filter(id__in=employee_ids)
+            context['adminform'].form.fields['project'].queryset = request.user.employee_projects.all().union(
+                request.user.created_projects.all())
         return super(TaskAdmin, self).render_change_form(request, context, *args, **kwargs)
 
     def has_add_permission(self, request):
