@@ -177,11 +177,6 @@ class TaskAdmin(AdminAdvancedFiltersMixin, admin.ModelAdmin):
     ordering = ('-created_at',)
     readonly_fields = ['created_at', 'last_modified', 'created_by']
 
-    fieldsets = (  # Edition form
-        (None, {'fields': ['project', 'sprint', 'title', 'description', 'employee', 'deadline', 'redline',
-                           'state', 'priority']}),
-        ("Доп.информация", {'fields': (('created_at', 'last_modified'), 'created_by'), 'classes': ('collapse',)}),
-    )
     inlines = [ItemInline]
 
     formfield_overrides = {
@@ -191,7 +186,6 @@ class TaskAdmin(AdminAdvancedFiltersMixin, admin.ModelAdmin):
     }
 
     def get_fieldsets(self, request, obj=None):
-        fieldsets = super().get_fieldsets(request, obj)
         if obj is None:
             fieldsets = (  # Creation form
                 (
@@ -201,8 +195,18 @@ class TaskAdmin(AdminAdvancedFiltersMixin, admin.ModelAdmin):
                         'redline',
                         'sub_tasks']}),
             )
+        else:
+            fieldsets = (  # Edition form
+                (None,
+                 {'fields': ['project', 'sprint', 'title', 'description', 'state', 'priority', 'employee', 'deadline',
+                             'redline',
+                             'sub_tasks']}),
+                ("Доп.информация",
+                 {'fields': (('created_at', 'last_modified'), 'created_by'), 'classes': ('collapse',)}),
+            )
+
         if request.user.role in ('dev', 'qa', 'analyst'):
-            fieldsets[0][1]['fields'].remove('deadline')
+            fieldsets[0][1]['fields'].remove('redline')
         return fieldsets
 
     # def render_change_form(self, request, context, *args, **kwargs):
