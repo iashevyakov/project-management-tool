@@ -23,5 +23,7 @@ python3 manage.py runserver
 
 **Для Area Dev Lead**: ivan - ronaldo77
 
+**Для Dev**: dev - ronaldo77
+
 
 

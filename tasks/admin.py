@@ -5,7 +5,7 @@ from django.contrib import admin, auth
 from django.db import models
 from django.forms import Textarea
 
-from .lib import PmPermissionMixin
+from .lib import PmPermissionMixin, get_employee_tasks, get_employee_subordinates
 from .models import Task, Item, Employee, Project, Sprint, Dates
 from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
 
@@ -207,6 +207,9 @@ class TaskAdmin(AdminAdvancedFiltersMixin, admin.ModelAdmin):
 
         if request.user.role in ('dev', 'qa', 'analyst'):
             fieldsets[0][1]['fields'].remove('redline')
+
+        print(fieldsets)
+        # print(self.readonly_fields)
         return fieldsets
 
     # def render_change_form(self, request, context, *args, **kwargs):
@@ -220,29 +223,39 @@ class TaskAdmin(AdminAdvancedFiltersMixin, admin.ModelAdmin):
 
     def get_readonly_fields(self, request, obj=None):
         if obj and obj.employee == request.user:
+            print(self.readonly_fields)
             return tuple(self.readonly_fields) + (
                 'project', 'sprint', 'title', 'description', 'employee', 'deadline', 'priority', 'redline')
         else:
             return super(TaskAdmin, self).get_readonly_fields(request, obj)
 
-    # def get_queryset(self, request):
-    #     tasks = get_employee_tasks(request.user)
-    #     return Task.objects.filter(id__in=[t.id for t in tasks])
+    def get_queryset(self, request):
+        task_ids = [task.id for task in get_employee_tasks(request.user)]
+        return Task.objects.filter(id__in=task_ids)
 
-    # def render_change_form(self, request, context, *args, **kwargs):
-    #     context['adminform'].form.fields['employee'].queryset = get_employee_subordinates(request.user)
-    #     return super(TaskAdmin, self).render_change_form(request, context, *args, **kwargs)
+    def render_change_form(self, request, context, *args, **kwargs):
+        if not kwargs['obj'] in request.user.tasks_assigned.all():
+            employee_ids = [e.id for e in get_employee_subordinates(request.user)]
+            context['adminform'].form.fields['employee'].queryset = Employee.objects.filter(id__in=employee_ids)
+        return super(TaskAdmin, self).render_change_form(request, context, *args, **kwargs)
 
-    # def has_add_permission(self, request):
-    #     if get_employee_subordinates(request.user):
-    #         print(len(get_employee_subordinates(request.user)))
-    #         return True
-    #     return False
-    # # #
-    # # def has_change_permission(self, request, obj=None):
-    # #     if get_employee_subordinates(request.user):
-    # #         return True
-    # #     return False
+    def has_add_permission(self, request):
+        if get_employee_subordinates(request.user):
+            return True
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        if obj and obj.employee == request.user:
+            return True
+        elif get_employee_subordinates(request.user):
+            return True
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        if obj and obj.employee == request.user:
+            return False
+
+        return True
 
 
 class EmployeeAdmin(AdminAdvancedFiltersMixin, admin.ModelAdmin, PmPermissionMixin):

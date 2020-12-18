@@ -19,7 +19,8 @@ class Project(models.Model):
     date_start = models.DateField("Дата начала", null=False, blank=False)
     date_end = models.DateField("Дата завершения", null=False, blank=False)
     status = models.CharField("Статус", choices=PROJECT_SPRINT_STATUSES, max_length=20)
-    employees = models.ManyToManyField("Employee", verbose_name='Сотрудники', null=True, blank=True, related_name='employee_projects')
+    employees = models.ManyToManyField("Employee", verbose_name='Сотрудники', null=True, blank=True,
+                                       related_name='employee_projects')
 
     created_at = models.DateTimeField("Дата создания", auto_now_add=True, editable=False)
     last_modified = models.DateTimeField("Последнее изменение", auto_now=True, editable=False)
@@ -83,7 +84,7 @@ class Task(models.Model):
     deadline = models.DateTimeField("Дата завершения", null=True, blank=True)
     redline = models.DateTimeField("Запасная дата завершения", null=True, blank=True)
     employee = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='tasks_assigned', verbose_name='Ответственный',
-                                 on_delete=models.SET_NULL, null=True, blank=True)
+                                 on_delete=models.SET_NULL, null=True, blank=False)
     state = models.CharField("Статус", max_length=20, choices=STATUSES, default='to-do')
     priority = models.CharField("Приоритет", max_length=20, choices=PRIORITIES, default=PRIORITIES[0][0])
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='created_tasks', verbose_name='Кем создана',
