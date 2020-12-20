@@ -15,7 +15,8 @@ class Project(models.Model):
         verbose_name = 'Проект'
         verbose_name_plural = 'Проекты'
 
-    title = models.CharField("Название", max_length=100)
+    title = models.CharField("Название", max_length=100, null=False, blank=False)
+    short_name = models.CharField("Аббревиатура", null=False, blank=False, max_length=20)
     date_start = models.DateField("Дата начала", null=False, blank=False)
     date_end = models.DateField("Дата завершения", null=False, blank=False)
     status = models.CharField("Статус", choices=PROJECT_SPRINT_STATUSES, max_length=20)
@@ -50,7 +51,7 @@ class Sprint(models.Model):
                                    on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
-        return f"({self.project.title}) {self.title}"
+        return f"({self.project.short_name}) {self.title}"
 
 
 class Task(models.Model):
@@ -74,15 +75,15 @@ class Task(models.Model):
         ('critical', 'Critical'),
     )
 
-    project = models.ForeignKey(Project, related_name='project_tasks', null=True, blank=True, verbose_name='Проект',
+    project = models.ForeignKey(Project, related_name='project_tasks', null=True, blank=False, verbose_name='Проект',
                                 on_delete=models.CASCADE)
     sprint = models.ForeignKey(Sprint, related_name='sprint_tasks', null=True, blank=True, verbose_name='Спринт',
                                on_delete=models.CASCADE)
     title = models.CharField("Название", max_length=200)
     description = models.TextField("Описание", max_length=2000, null=True, blank=True)
     accept_criterion = models.TextField("Критерий приёмки", max_length=2000, null=True, blank=True)
-    deadline = models.DateTimeField("Дата завершения", null=True, blank=True)
-    redline = models.DateTimeField("Запасная дата завершения", null=True, blank=True)
+    deadline = models.DateTimeField("Дата завершения", null=True, blank=False)
+    redline = models.DateTimeField("Запасная дата завершения", null=True, blank=False)
     employee = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='tasks_assigned', verbose_name='Ответственный',
                                  on_delete=models.SET_NULL, null=True, blank=False)
     state = models.CharField("Статус", max_length=20, choices=STATUSES, default='to-do')
@@ -100,7 +101,7 @@ class Task(models.Model):
 
     @property
     def number(self):
-        return "{:08d}".format(self.pk)
+        return f"{self.project.short_name}-{self.id}"
 
     # def save(self, *args, **kwargs):
     #     task_created = self.pk is None
@@ -145,14 +146,6 @@ class Employee(AbstractUser):
 
     def __str__(self):
         return self.name
-
-    @property
-    def created_at(self):
-        return '0'
-
-    # @property.setter
-    # def created_at(self, value):
-    #     pass
 
 
 class Item(models.Model):
