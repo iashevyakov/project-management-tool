@@ -2,9 +2,11 @@ from adminfilters.multiselect import UnionFieldListFilter
 from advanced_filters.admin import AdminAdvancedFiltersMixin
 from advanced_filters.models import AdvancedFilter
 from django.contrib import admin, auth
+from django.core.mail import send_mail
 from django.db import models
 from django.forms import Textarea
 
+from pm.settings import email, EMAIL_HOST_USER
 from .filters import EmployeeFilter, ProjectFilter, SprintFilter
 from .lib import PmPermissionMixin, get_employee_tasks, get_employee_subordinates
 from .models import Task, Item, Employee, Project, Sprint, Dates
@@ -209,18 +211,21 @@ class TaskAdmin(AdminAdvancedFiltersMixin, admin.ModelAdmin):
         if request.user.role in ('dev', 'qa', 'analyst'):
             fieldsets[0][1]['fields'].remove('redline')
 
-        print(fieldsets)
-        # print(self.readonly_fields)
         return fieldsets
 
-    # def render_change_form(self, request, context, *args, **kwargs):
-    #     context['adminform'].form.fields['project'].queryset = request.user.employee_projects.all()
-    #     return super(TaskAdmin, self).render_change_form(request, context, *args, **kwargs)
-
     def save_model(self, request, obj, form, change):
-        if change is False:
+        if not change:
             obj.created_by = request.user
         super().save_model(request, obj, form, change)
+        if obj.employee.email:
+            if not change:
+                send_mail(f"Создание задачи: {str(obj)}",
+                          f'Вам назначена задача {str(obj)} от {request.user.name}',
+                          EMAIL_HOST_USER, [obj.employee.email])
+            elif obj.employee != request.user:
+                send_mail(f"Изменение задачи: {str(obj)}",
+                          f'Характеристики задачи {str(obj)} изменились',
+                          EMAIL_HOST_USER, [obj.employee.email])
 
     def get_readonly_fields(self, request, obj=None):
         if obj and obj.employee == request.user:
