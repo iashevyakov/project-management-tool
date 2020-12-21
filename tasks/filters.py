@@ -20,4 +20,8 @@ class ProjectFilter(RelatedDropdownFilter):
 class SprintFilter(RelatedDropdownFilter):
     def field_choices(self, field, request, model_admin):
         projects = request.user.employee_projects.all().union(request.user.created_projects.all())
-        return [(s.id, str(s)) for s in Sprint.objects.filter(project__in=projects)]
+        print(projects)
+        sprints = []
+        for project in projects:
+            sprints.extend(project.project_sprints.all())
+        return [(s.id, str(s)) for s in sprints]

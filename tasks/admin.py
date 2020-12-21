@@ -1,6 +1,4 @@
 from adminfilters.multiselect import UnionFieldListFilter
-from advanced_filters.admin import AdminAdvancedFiltersMixin
-from advanced_filters.models import AdvancedFilter
 from django.contrib import admin, auth
 from django.core.mail import send_mail
 from django.db import models
@@ -18,7 +16,7 @@ class ItemInline(admin.TabularInline):
     extra = 0
 
 
-class ProjectAdmin(AdminAdvancedFiltersMixin, admin.ModelAdmin, PmPermissionMixin):
+class ProjectAdmin(admin.ModelAdmin, PmPermissionMixin):
     list_display = ('title', 'created_at', 'date_start', 'status', 'date_end', 'last_modified')
     list_display_links = ('title',)
     search_fields = ('title', 'status')
@@ -29,12 +27,6 @@ class ProjectAdmin(AdminAdvancedFiltersMixin, admin.ModelAdmin, PmPermissionMixi
         'status'
     )
 
-    advanced_filter_fields = (
-        'title',
-        'date_start',
-        'date_end',
-        'status'
-    )
 
     ordering = ('-created_at',)
     readonly_fields = ('created_at', 'last_modified', 'created_by')
@@ -84,7 +76,7 @@ class ProjectAdmin(AdminAdvancedFiltersMixin, admin.ModelAdmin, PmPermissionMixi
         return self.only_for_pm(request)
 
 
-class SprintAdmin(AdminAdvancedFiltersMixin, admin.ModelAdmin, PmPermissionMixin):
+class SprintAdmin(admin.ModelAdmin, PmPermissionMixin):
     list_display = ('project', 'title', 'created_at', 'date_start', 'status', 'date_end', 'last_modified')
     list_display_links = ('title',)
     search_fields = ('title', 'status')
@@ -93,13 +85,6 @@ class SprintAdmin(AdminAdvancedFiltersMixin, admin.ModelAdmin, PmPermissionMixin
         'date_start',
         'date_end',
         'status',
-    )
-
-    advanced_filter_fields = (
-        'title',
-        'date_start',
-        'date_end',
-        'status'
     )
 
     ordering = ('-created_at',)
@@ -154,7 +139,7 @@ class SprintAdmin(AdminAdvancedFiltersMixin, admin.ModelAdmin, PmPermissionMixin
         return self.only_for_pm(request)
 
 
-class TaskAdmin(AdminAdvancedFiltersMixin, admin.ModelAdmin):
+class TaskAdmin(admin.ModelAdmin):
     list_display = ('number', 'title', 'project', 'sprint', 'employee', 'created_at', 'deadline', 'priority', 'state')
     list_display_links = ('number', 'title')
     search_fields = ('id', 'title',
@@ -162,21 +147,12 @@ class TaskAdmin(AdminAdvancedFiltersMixin, admin.ModelAdmin):
     list_filter = (
         ('employee', EmployeeFilter),
         ('project', ProjectFilter),
-        ('sprint', RelatedDropdownFilter),
+        ('sprint', SprintFilter),
         ('state', UnionFieldListFilter),
         ('priority', UnionFieldListFilter),
         'deadline'
     )
-    advanced_filter_fields = (
-        'employee__username',
-        'state',
-        'priority',
-        'deadline',
-        'created_at',
-        'created_by',
-        'title',
-        'description',
-    )
+
     ordering = ('-created_at',)
     readonly_fields = ['created_at', 'last_modified', 'created_by']
 
@@ -266,7 +242,7 @@ class TaskAdmin(AdminAdvancedFiltersMixin, admin.ModelAdmin):
         return True
 
 
-class EmployeeAdmin(AdminAdvancedFiltersMixin, admin.ModelAdmin, PmPermissionMixin):
+class EmployeeAdmin(admin.ModelAdmin, PmPermissionMixin):
     list_display = ('name', 'role', 'email')
     search_fields = ('username', 'name', 'role', 'email')
 
@@ -330,4 +306,3 @@ admin.site.register(Employee, EmployeeAdmin)
 admin.site.register(Task, TaskAdmin)
 admin.site.register(Dates, DatesAdmin)
 admin.site.unregister(auth.models.Group)
-admin.site.unregister(AdvancedFilter)

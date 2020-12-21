@@ -29,7 +29,6 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
-    'advanced_filters',
     'django_admin_listfilter_dropdown',
     'adminfilters',
     'django.contrib.admin',
@@ -142,3 +141,5 @@ EMAIL_HOST = 'smtp.mail.ru'
 EMAIL_PORT = 2525
 EMAIL_HOST_USER = email
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD')
+
+ADMIN_LOGIN_REDIRECT_URL = '/tasks/task/'

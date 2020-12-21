@@ -3,30 +3,30 @@ from django.db import models
 from django.conf import settings
 
 PROJECT_SPRINT_STATUSES = (
-    ('open', 'Открыт'),
-    ('in_progress', 'В работе'),
-    ('delay', 'Идёт с задержкой'),
-    ('closed', 'Завершён')
+    ('open', 'Open'),
+    ('in_progress', 'In progress'),
+    ('delay', 'Delayed'),
+    ('closed', 'Completed')
 )
 
 
 class Project(models.Model):
     class Meta:
-        verbose_name = 'Проект'
-        verbose_name_plural = 'Проекты'
+        verbose_name = 'Project'
+        verbose_name_plural = 'Projects'
 
-    title = models.CharField("Название", max_length=100, null=False, blank=False)
-    short_name = models.CharField("Аббревиатура", null=False, blank=False, max_length=20)
-    date_start = models.DateField("Дата начала", null=False, blank=False)
-    date_end = models.DateField("Дата завершения", null=False, blank=False)
-    status = models.CharField("Статус", choices=PROJECT_SPRINT_STATUSES, max_length=20)
-    employees = models.ManyToManyField("Employee", verbose_name='Сотрудники', null=True, blank=True,
+    title = models.CharField("Title", max_length=100, null=False, blank=False)
+    short_name = models.CharField("Short name", null=False, blank=False, max_length=20)
+    date_start = models.DateField("Date start", null=False, blank=False)
+    date_end = models.DateField("Date end", null=False, blank=False)
+    status = models.CharField("Status", choices=PROJECT_SPRINT_STATUSES, max_length=20)
+    employees = models.ManyToManyField("Employee", verbose_name='Employees', null=True, blank=True,
                                        related_name='employee_projects')
 
-    created_at = models.DateTimeField("Дата создания", auto_now_add=True, editable=False)
-    last_modified = models.DateTimeField("Последнее изменение", auto_now=True, editable=False)
+    created_at = models.DateTimeField("Creation date", auto_now_add=True, editable=False)
+    last_modified = models.DateTimeField("Last modified", auto_now=True, editable=False)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='created_projects',
-                                   verbose_name='Кем создан',
+                                   verbose_name='Created by',
                                    on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
@@ -35,19 +35,19 @@ class Project(models.Model):
 
 class Sprint(models.Model):
     class Meta:
-        verbose_name = 'Спринт'
-        verbose_name_plural = 'Спринты'
+        verbose_name = 'Sprint'
+        verbose_name_plural = 'Sprints'
 
     project = models.ForeignKey(Project, related_name='project_sprints', null=False, blank=False,
                                 on_delete=models.CASCADE)
-    title = models.CharField("Название", max_length=100)
-    date_start = models.DateField("Дата начала", null=False, blank=False)
-    date_end = models.DateField("Дата завершения", null=False, blank=False)
-    status = models.CharField("Статус", choices=PROJECT_SPRINT_STATUSES, max_length=20)
+    title = models.CharField("Title", max_length=100)
+    date_start = models.DateField("Date start", null=False, blank=False)
+    date_end = models.DateField("Date end", null=False, blank=False)
+    status = models.CharField("Status", choices=PROJECT_SPRINT_STATUSES, max_length=20)
 
-    created_at = models.DateTimeField("Дата создания", auto_now_add=True, editable=False)
-    last_modified = models.DateTimeField("Последнее изменение", auto_now=True, editable=False)
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='created_sprints', verbose_name='Кем создан',
+    created_at = models.DateTimeField("Creation date", auto_now_add=True, editable=False)
+    last_modified = models.DateTimeField("Last modified", auto_now=True, editable=False)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='created_sprints', verbose_name='Created by',
                                    on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
@@ -56,16 +56,16 @@ class Sprint(models.Model):
 
 class Task(models.Model):
     class Meta:
-        verbose_name = "Задача"
-        verbose_name_plural = "Задачи"
+        verbose_name = "Task"
+        verbose_name_plural = "Tasks"
 
     STATUSES = (
-        ('to-do', 'Поставлена'),
-        ('in_progress', 'В работе'),
-        ('postponed', 'Отложена'),
-        ('done', 'Завершена'),
-        ('delay', 'Идёт с задержкой'),
-        ('late', 'Опоздание')
+        ('to-do', 'Set'),
+        ('in_progress', 'In progress'),
+        ('postponed', 'Postponed'),
+        ('done', 'Completed'),
+        ('delay', 'Delayed'),
+        ('late', 'Being late')
     )
 
     PRIORITIES = (
@@ -75,26 +75,26 @@ class Task(models.Model):
         ('critical', 'Critical'),
     )
 
-    project = models.ForeignKey(Project, related_name='project_tasks', null=True, blank=False, verbose_name='Проект',
+    project = models.ForeignKey(Project, related_name='project_tasks', null=True, blank=False, verbose_name='Project',
                                 on_delete=models.CASCADE)
-    sprint = models.ForeignKey(Sprint, related_name='sprint_tasks', null=True, blank=True, verbose_name='Спринт',
+    sprint = models.ForeignKey(Sprint, related_name='sprint_tasks', null=True, blank=True, verbose_name='Sprint',
                                on_delete=models.CASCADE)
-    title = models.CharField("Название", max_length=200)
-    description = models.TextField("Описание", max_length=2000, null=True, blank=True)
-    accept_criterion = models.TextField("Критерий приёмки", max_length=2000, null=True, blank=True)
-    deadline = models.DateTimeField("Дата завершения", null=True, blank=False)
-    redline = models.DateTimeField("Запасная дата завершения", null=True, blank=False)
-    employee = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='tasks_assigned', verbose_name='Ответственный',
+    title = models.CharField("Title", max_length=200)
+    description = models.TextField("Description", max_length=2000, null=True, blank=True)
+    accept_criterion = models.TextField("Acceptance Criterion", max_length=2000, null=True, blank=True)
+    deadline = models.DateTimeField("Deadline", null=True, blank=False)
+    redline = models.DateTimeField("Redline", null=True, blank=False)
+    employee = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='tasks_assigned', verbose_name='Assigned',
                                  on_delete=models.SET_NULL, null=True, blank=False)
-    state = models.CharField("Статус", max_length=20, choices=STATUSES, default='to-do')
-    priority = models.CharField("Приоритет", max_length=20, choices=PRIORITIES, default=PRIORITIES[0][0])
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='created_tasks', verbose_name='Кем создана',
+    state = models.CharField("Status", max_length=20, choices=STATUSES, default='to-do')
+    priority = models.CharField("Priority", max_length=20, choices=PRIORITIES, default=PRIORITIES[0][0])
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='created_tasks', verbose_name='Created by',
                                    on_delete=models.SET_NULL, null=True)
 
-    created_at = models.DateTimeField("Дата создания", auto_now_add=True, editable=False)
-    last_modified = models.DateTimeField("Последнее изменение", auto_now=True, editable=False)
+    created_at = models.DateTimeField("Creation date", auto_now_add=True, editable=False)
+    last_modified = models.DateTimeField("Last modified", auto_now=True, editable=False)
 
-    sub_tasks = models.ManyToManyField('Task', related_name='parent_task', verbose_name='Подзадачи', blank=True)
+    sub_tasks = models.ManyToManyField('Task', related_name='parent_task', verbose_name='Subtasks', blank=True)
 
     def __str__(self):
         return "[%s] %s" % (self.number, self.title)
@@ -102,12 +102,6 @@ class Task(models.Model):
     @property
     def number(self):
         return f"{self.project.short_name}-{self.id}"
-
-    # def save(self, *args, **kwargs):
-    #     task_created = self.pk is None
-    #     super().save(*args, **kwargs)
-    #     if task_created:
-    #         self.send_new_task_email()
 
 
 ROLES = (
@@ -125,8 +119,8 @@ ROLES = (
 
 
 class Dates(models.Model):
-    name = models.CharField("Название даты", max_length=50)
-    date = models.DateField("Дата", null=False, blank=False)
+    name = models.CharField("Date name", max_length=50)
+    date = models.DateField("Date", null=False, blank=False)
 
     def __str__(self):
         return f"{self.date.day}.{self.date.month} | {self.name}"
@@ -134,15 +128,15 @@ class Dates(models.Model):
 
 class Employee(AbstractUser):
     class Meta:
-        verbose_name = "Пользователь"
-        verbose_name_plural = "Пользователи"
+        verbose_name = "Employee"
+        verbose_name_plural = "Employees"
 
-    name = models.CharField("ФИО", max_length=50, blank=False, null=False)
-    role = models.CharField("Роль", max_length=20, choices=ROLES, default=ROLES[0][0], blank=False, null=False)
+    name = models.CharField("Full name", max_length=50, blank=False, null=False)
+    role = models.CharField("Role", max_length=20, choices=ROLES, default=ROLES[0][0], blank=False, null=False)
     chief = models.ForeignKey('Employee', on_delete=models.SET_NULL, related_name='subordinates', null=True, blank=True,
-                              verbose_name='Начальник')
-    birthday = models.DateField("Дата рождения", null=True, blank=True)
-    dates = models.ManyToManyField('Dates', null=True, blank=True, verbose_name='Важные даты')
+                              verbose_name='Chief')
+    birthday = models.DateField("Birthday", null=True, blank=True)
+    dates = models.ManyToManyField('Dates', null=True, blank=True, verbose_name='Important dates')
 
     def __str__(self):
         return self.name
@@ -150,11 +144,11 @@ class Employee(AbstractUser):
 
 class Item(models.Model):
     class Meta:
-        verbose_name = "Чек лист"
-        verbose_name_plural = "Чек листы"
+        verbose_name = "Item"
+        verbose_name_plural = "Items"
 
     task = models.ForeignKey(Task, on_delete=models.CASCADE)
-    item_description = models.CharField("Описание", max_length=200)
+    item_description = models.CharField("Description", max_length=200)
     is_done = models.BooleanField("Done", default=False)
 
     def __str__(self):

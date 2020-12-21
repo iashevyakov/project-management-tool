@@ -19,6 +19,6 @@ from django.http import HttpResponseRedirect
 from django.urls import path, include
 
 urlpatterns = [
-    path('', admin.site.urls),
-    url(r'^advanced_filters/', include('advanced_filters.urls')),
+    url('^$', lambda r: HttpResponseRedirect('tasks')),
+    url('^', admin.site.urls),
 ]
