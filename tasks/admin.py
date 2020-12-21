@@ -194,12 +194,12 @@ class TaskAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
         if obj.employee.email:
             if not change:
-                send_mail(f"Создание задачи: {str(obj)}",
-                          f'Вам назначена задача {str(obj)} от {request.user.name}',
+                send_mail(f"Назначена задача: {str(obj)}",
+                          f'Назначена задача: {str(obj)} от {request.user.name}',
                           EMAIL_HOST_USER, [obj.employee.email])
             elif obj.employee != request.user:
-                send_mail(f"Изменение задачи: {str(obj)}",
-                          f'Характеристики задачи {str(obj)} изменились',
+                send_mail(f"Изменена задача: {str(obj)}",
+                          f'Изменена задача: {str(obj)}',
                           EMAIL_HOST_USER, [obj.employee.email])
 
     def get_readonly_fields(self, request, obj=None):
