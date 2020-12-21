@@ -27,12 +27,11 @@ class ProjectAdmin(admin.ModelAdmin, PmPermissionMixin):
         'status'
     )
 
-
     ordering = ('-created_at',)
     readonly_fields = ('created_at', 'last_modified', 'created_by')
 
     fieldsets = (  # Edition form
-        (None, {'fields': ('title', 'date_start', 'date_end', 'status',
+        (None, {'fields': ('title', 'short_name', 'date_start', 'date_end', 'status',
                            'employees')}),
         ("Доп.информация", {'fields': (('created_at', 'last_modified'), 'created_by'), 'classes': ('collapse',)}),
     )
@@ -49,7 +48,7 @@ class ProjectAdmin(admin.ModelAdmin, PmPermissionMixin):
             fieldsets = (  # Creation form
                 (
                     None,
-                    {'fields': ('title', 'date_start', 'date_end', 'status',
+                    {'fields': ('title', 'short_name', 'date_start', 'date_end', 'status',
                                 'employees')}),
             )
         return fieldsets
