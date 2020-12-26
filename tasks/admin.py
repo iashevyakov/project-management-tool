@@ -3,6 +3,7 @@ from django.contrib import admin, auth
 from django.core.mail import send_mail
 from django.db import models
 from django.forms import Textarea
+from django import forms
 
 from pm.settings import email, EMAIL_HOST_USER
 from .filters import EmployeeFilter, ProjectFilter, SprintFilter, RoleFilter
@@ -156,6 +157,21 @@ class SprintAdmin(admin.ModelAdmin, PmPermissionMixin):
         return self.only_for_pm(request)
 
 
+class TaskForm(forms.ModelForm):
+    class Meta:
+        model = Task
+        fields = '__all__'
+
+    def clean(self):
+        super(TaskForm, self).clean()
+        deadline = self.cleaned_data.get('deadline', '')
+        redline = self.cleaned_data.get('redline', '')
+
+        if redline and deadline and redline > deadline:
+            raise forms.ValidationError("Deadline must be greater (or equal) than Redline (`To be completed`)")
+        return self.cleaned_data
+
+
 class TaskAdmin(admin.ModelAdmin):
     list_display = (
         'number', 'title', 'project', 'sprint', 'employee', 'created_at', 'redline', 'deadline', 'priority', 'state')
@@ -171,6 +187,8 @@ class TaskAdmin(admin.ModelAdmin):
         ('priority', UnionFieldListFilter),
         'deadline',
     )
+
+    form = TaskForm
     # filter_vertical = ('sub_tasks',)
 
     ordering = ('-created_at',)
@@ -189,15 +207,15 @@ class TaskAdmin(admin.ModelAdmin):
                 (
                     None,
                     {'fields': [
-                        'project', 'sprint', 'title', 'description', 'state', 'priority', 'employee', 'deadline',
-                        'redline',
+                        'project', 'sprint', 'title', 'description', 'state', 'priority', 'employee', 'redline',
+                        'deadline',
                         'sub_tasks']}),
             )
         else:
             fieldsets = (  # Edition form
                 (None,
-                 {'fields': ['project', 'sprint', 'title', 'description', 'state', 'priority', 'employee', 'deadline',
-                             'redline',
+                 {'fields': ['project', 'sprint', 'title', 'description', 'state', 'priority', 'employee', 'redline',
+                             'deadline',
                              'sub_tasks']}),
                 ("Доп.информация",
                  {'fields': (('created_at', 'last_modified'), 'created_by'), 'classes': ('collapse',)}),
