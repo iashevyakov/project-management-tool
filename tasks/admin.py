@@ -177,7 +177,6 @@ class TaskAdmin(admin.ModelAdmin):
     readonly_fields = ['created_at', 'last_modified', 'created_by']
 
     inlines = [ItemInline]
-
     formfield_overrides = {
         models.TextField: {
             'widget': Textarea(attrs={'rows': 4, 'cols': 32})

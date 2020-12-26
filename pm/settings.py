@@ -124,7 +124,7 @@ TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
-USE_L10N = True
+# USE_L10N = True
 
 USE_TZ = True
 
@@ -143,3 +143,10 @@ EMAIL_HOST_USER = email
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD')
 
 ADMIN_LOGIN_REDIRECT_URL = '/tasks/task/'
+
+USE_L10N = False
+DATE_FORMAT = 'd-m-Y'
+DATETIME_FORMAT = 'd-m-Y H:i'
+
+DATE_INPUT_FORMATS = ('%d-%m-%Y',)
+TIME_INPUT_FORMATS = ('%H:%M',)
