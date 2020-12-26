@@ -171,7 +171,7 @@ class TaskAdmin(admin.ModelAdmin):
         ('priority', UnionFieldListFilter),
         'deadline',
     )
-    filter_vertical = ('sub_tasks',)
+    # filter_vertical = ('sub_tasks',)
 
     ordering = ('-created_at',)
     readonly_fields = ['created_at', 'last_modified', 'created_by']
