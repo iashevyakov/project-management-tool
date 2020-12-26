@@ -21,4 +21,5 @@ from django.urls import path, include
 urlpatterns = [
     url('^$', lambda r: HttpResponseRedirect('tasks')),
     url('^', admin.site.urls),
+    url('^api/', include('tasks.urls', namespace='api'))
 ]

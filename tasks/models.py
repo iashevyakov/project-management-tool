@@ -3,7 +3,7 @@ from django.db import models
 from django.conf import settings
 
 PROJECT_SPRINT_STATUSES = (
-    ('open', 'Open'),
+    ('open', 'Not started'),
     ('in_progress', 'In progress'),
     ('delay', 'Delayed'),
     ('closed', 'Completed')
@@ -18,7 +18,8 @@ class Project(models.Model):
     title = models.CharField("Title", max_length=100, null=False, blank=False)
     short_name = models.CharField("Short name", null=False, blank=False, max_length=20)
     date_start = models.DateField("Date start", null=False, blank=False)
-    date_end = models.DateField("Date end", null=False, blank=False)
+    redline = models.DateField("To be completed", null=True, blank=False)
+    date_end = models.DateField("Deadline", null=False, blank=False)
     status = models.CharField("Status", choices=PROJECT_SPRINT_STATUSES, max_length=20)
     employees = models.ManyToManyField("Employee", verbose_name='Employees', null=True, blank=True,
                                        related_name='employee_projects')
@@ -42,7 +43,8 @@ class Sprint(models.Model):
                                 on_delete=models.CASCADE)
     title = models.CharField("Title", max_length=100)
     date_start = models.DateField("Date start", null=False, blank=False)
-    date_end = models.DateField("Date end", null=False, blank=False)
+    redline = models.DateField("To be completed", null=True, blank=False)
+    date_end = models.DateField("Deadline", null=False, blank=False)
     status = models.CharField("Status", choices=PROJECT_SPRINT_STATUSES, max_length=20)
 
     created_at = models.DateTimeField("Creation date", auto_now_add=True, editable=False)
@@ -60,7 +62,7 @@ class Task(models.Model):
         verbose_name_plural = "Tasks"
 
     STATUSES = (
-        ('to-do', 'Set'),
+        ('to-do', 'Not started'),
         ('in_progress', 'In progress'),
         ('postponed', 'Postponed'),
         ('done', 'Completed'),
@@ -83,7 +85,7 @@ class Task(models.Model):
     description = models.TextField("Description", max_length=2000, null=True, blank=True)
     accept_criterion = models.TextField("Acceptance Criterion", max_length=2000, null=True, blank=True)
     deadline = models.DateTimeField("Deadline", null=True, blank=False)
-    redline = models.DateTimeField("Redline", null=True, blank=False)
+    redline = models.DateTimeField("To be completed", null=True, blank=False)
     employee = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='tasks_assigned', verbose_name='Assigned',
                                  on_delete=models.SET_NULL, null=True, blank=False)
     state = models.CharField("Status", max_length=20, choices=STATUSES, default='to-do')
@@ -152,4 +154,4 @@ class Item(models.Model):
     is_done = models.BooleanField("Done", default=False)
 
     def __str__(self):
-        return self.item_description
+        return ''

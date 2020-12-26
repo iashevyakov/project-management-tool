@@ -5,7 +5,7 @@ from django.db import models
 from django.forms import Textarea
 
 from pm.settings import email, EMAIL_HOST_USER
-from .filters import EmployeeFilter, ProjectFilter, SprintFilter
+from .filters import EmployeeFilter, ProjectFilter, SprintFilter, RoleFilter
 from .lib import PmPermissionMixin, get_employee_tasks, get_employee_subordinates
 from .models import Task, Item, Employee, Project, Sprint, Dates
 from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
@@ -15,9 +15,27 @@ class ItemInline(admin.TabularInline):
     model = Item
     extra = 0
 
+    fields = ('item_description', 'is_done')
+
+    def has_add_permission(self, request, obj=None):
+        if obj and obj.employee == request.user:
+            return False
+        return True
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj and obj.employee == request.user:
+            return ('item_description',)
+        else:
+            return super(ItemInline, self).get_readonly_fields(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        if obj and obj.employee == request.user:
+            return False
+        return True
+
 
 class ProjectAdmin(admin.ModelAdmin, PmPermissionMixin):
-    list_display = ('title', 'created_at', 'date_start', 'status', 'date_end', 'last_modified')
+    list_display = ('title', 'created_at', 'date_start', 'status', 'redline', 'date_end', 'last_modified')
     list_display_links = ('title',)
     search_fields = ('title', 'status')
 
@@ -31,7 +49,7 @@ class ProjectAdmin(admin.ModelAdmin, PmPermissionMixin):
     readonly_fields = ('created_at', 'last_modified', 'created_by')
 
     fieldsets = (  # Edition form
-        (None, {'fields': ('title', 'short_name', 'date_start', 'date_end', 'status',
+        (None, {'fields': ('title', 'short_name', 'date_start', 'redline', 'date_end', 'status',
                            'employees')}),
         ("Доп.информация", {'fields': (('created_at', 'last_modified'), 'created_by'), 'classes': ('collapse',)}),
     )
@@ -48,7 +66,7 @@ class ProjectAdmin(admin.ModelAdmin, PmPermissionMixin):
             fieldsets = (  # Creation form
                 (
                     None,
-                    {'fields': ('title', 'short_name', 'date_start', 'date_end', 'status',
+                    {'fields': ('title', 'short_name', 'date_start', 'redline', 'date_end', 'status',
                                 'employees')}),
             )
         return fieldsets
@@ -76,7 +94,7 @@ class ProjectAdmin(admin.ModelAdmin, PmPermissionMixin):
 
 
 class SprintAdmin(admin.ModelAdmin, PmPermissionMixin):
-    list_display = ('project', 'title', 'created_at', 'date_start', 'status', 'date_end', 'last_modified')
+    list_display = ('project', 'title', 'created_at', 'date_start', 'status', 'redline', 'date_end', 'last_modified')
     list_display_links = ('title',)
     search_fields = ('title', 'status')
 
@@ -90,7 +108,7 @@ class SprintAdmin(admin.ModelAdmin, PmPermissionMixin):
     readonly_fields = ('created_at', 'last_modified', 'created_by')
 
     fieldsets = (  # Edition form
-        (None, {'fields': ('project', 'title', 'date_start', 'date_end',
+        (None, {'fields': ('project', 'title', 'date_start', 'redline', 'date_end',
                            'status')}),
         ("Доп.информация", {'fields': (('created_at', 'last_modified'), 'created_by'), 'classes': ('collapse',)}),
     )
@@ -107,7 +125,7 @@ class SprintAdmin(admin.ModelAdmin, PmPermissionMixin):
             fieldsets = (  # Creation form
                 (
                     None,
-                    {'fields': ('project', 'title', 'date_start', 'date_end',
+                    {'fields': ('project', 'title', 'date_start', 'redline', 'date_end',
                                 'status')}),
             )
         return fieldsets
@@ -139,18 +157,21 @@ class SprintAdmin(admin.ModelAdmin, PmPermissionMixin):
 
 
 class TaskAdmin(admin.ModelAdmin):
-    list_display = ('number', 'title', 'project', 'sprint', 'employee', 'created_at', 'deadline', 'priority', 'state')
+    list_display = (
+        'number', 'title', 'project', 'sprint', 'employee', 'created_at', 'redline', 'deadline', 'priority', 'state')
     list_display_links = ('number', 'title')
     search_fields = ('id', 'title',
                      'employee__name', 'priority', 'state')
     list_filter = (
+        RoleFilter,
         ('employee', EmployeeFilter),
         ('project', ProjectFilter),
         ('sprint', SprintFilter),
         ('state', UnionFieldListFilter),
         ('priority', UnionFieldListFilter),
-        'deadline'
+        'deadline',
     )
+    filter_vertical = ('sub_tasks',)
 
     ordering = ('-created_at',)
     readonly_fields = ['created_at', 'last_modified', 'created_by']
@@ -184,9 +205,17 @@ class TaskAdmin(admin.ModelAdmin):
             )
 
         if request.user.role in ('dev', 'qa', 'analyst'):
-            fieldsets[0][1]['fields'].remove('redline')
+            fieldsets[0][1]['fields'].remove('deadline')
 
         return fieldsets
+
+    def get_list_display(self, request):
+        if request.user.role in ('dev', 'qa', 'analyst'):
+            fields = list(self.list_display)
+            fields.remove('deadline')
+            return tuple(fields)
+        else:
+            return super(TaskAdmin, self).get_list_display(request)
 
     def save_model(self, request, obj, form, change):
         if not change:
@@ -237,7 +266,6 @@ class TaskAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         if obj and obj.employee == request.user:
             return False
-
         return True
 
 
