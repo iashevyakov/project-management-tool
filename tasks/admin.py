@@ -269,8 +269,10 @@ class TaskAdmin(admin.ModelAdmin):
                 project_tasks = kwargs['obj'].project.project_tasks.all()
                 tasks = project_tasks.filter(
                     id__in=[task.id for task in get_employee_tasks(request.user, include_self=False)])
-                employees = [(e.id, str(e)) for e in get_employee_subordinates(request.user, include_self=False) if
-                             e in kwargs['obj'].project.employees.all()]
+
+                project_employees = kwargs['obj'].project.employees.all()
+                employees = project_employees.filter(
+                    id__in=[e.id for e in get_employee_subordinates(request.user, include_self=False)])
 
                 context['adminform'].form.fields['sprint'].queryset = kwargs['obj'].project.project_sprints.all()
                 context['adminform'].form.fields['employee'].queryset = employees
