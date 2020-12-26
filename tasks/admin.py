@@ -262,10 +262,29 @@ class TaskAdmin(admin.ModelAdmin):
 
     def render_change_form(self, request, context, *args, **kwargs):
         if not kwargs['obj'] in request.user.tasks_assigned.all():
-            employee_ids = [e.id for e in get_employee_subordinates(request.user)]
-            context['adminform'].form.fields['employee'].queryset = Employee.objects.filter(id__in=employee_ids)
             context['adminform'].form.fields['project'].queryset = request.user.employee_projects.all().union(
                 request.user.created_projects.all())
+            if kwargs['obj']:
+
+                project_tasks = kwargs['obj'].project.project_tasks.all()
+                tasks = project_tasks.filter(
+                    id__in=[task.id for task in get_employee_tasks(request.user, include_self=False)])
+                employees = [(e.id, str(e)) for e in get_employee_subordinates(request.user, include_self=False) if
+                             e in kwargs['obj'].project.employees.all()]
+
+                context['adminform'].form.fields['sprint'].queryset = kwargs['obj'].project.project_sprints.all()
+                context['adminform'].form.fields['employee'].queryset = employees
+                context['adminform'].form.fields['sub_tasks'].queryset = tasks
+
+            else:
+                context['adminform'].form.fields['employee'].queryset = Employee.objects.none()
+                context['adminform'].form.fields['sub_tasks'].queryset = Task.objects.none()
+                context['adminform'].form.fields['sprint'].queryset = Sprint.objects.none()
+        else:
+            project_tasks = kwargs['obj'].project.project_tasks.all()
+            tasks = project_tasks.filter(
+                id__in=[task.id for task in get_employee_tasks(request.user, include_self=False)])
+            context['adminform'].form.fields['sub_tasks'].queryset = tasks
         return super(TaskAdmin, self).render_change_form(request, context, *args, **kwargs)
 
     def has_add_permission(self, request):

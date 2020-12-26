@@ -99,7 +99,8 @@ class Task(models.Model):
     sub_tasks = models.ManyToManyField('Task', related_name='parent_task', verbose_name='Subtasks', blank=True)
 
     def __str__(self):
-        return "[%s] %s" % (self.number, self.title)
+        return self.title
+        # return f"{self.title} | Project: {self.project.title} | Sprint: {self.sprint.title} | Status: {self.state} | Priority: {self.priority}"
 
     @property
     def number(self):

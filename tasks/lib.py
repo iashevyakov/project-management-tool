@@ -19,9 +19,10 @@ def get_employee_subordinates(employee, include_self=False):
     return r
 
 
-def get_employee_tasks(employee):
+def get_employee_tasks(employee, include_self=True):
     r = []
-    r.extend(employee.tasks_assigned.all())
+    if include_self:
+        r.extend(employee.tasks_assigned.all())
     for e in Employee.objects.filter(chief=employee):
         _r = get_employee_tasks(e)
         if 0 < len(_r):
