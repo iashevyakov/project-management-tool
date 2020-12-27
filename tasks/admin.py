@@ -91,7 +91,7 @@ class ProjectAdmin(admin.ModelAdmin, PmPermissionMixin):
 
     def render_change_form(self, request, context, *args, **kwargs):
         if kwargs['obj']:
-            if kwargs['obj'].status in ('open', 'in_progress') and kwargs[
+            if kwargs['obj'].redline and kwargs['obj'].status in ('open', 'in_progress') and kwargs[
                 'obj'].redline <= date.today():
                 kwargs['obj'].status = 'delay'
                 kwargs['obj'].save()
@@ -158,7 +158,7 @@ class SprintAdmin(admin.ModelAdmin, PmPermissionMixin):
             print(kwargs['obj'].redline)
             print(kwargs['obj'].date_end)
             print(date.today())
-            if kwargs['obj'].status in ('open', 'in_progress') and kwargs[
+            if kwargs['obj'].redline and kwargs['obj'].status in ('open', 'in_progress') and kwargs[
                 'obj'].redline <= date.today():
                 kwargs['obj'].status = 'delay'
                 kwargs['obj'].save()
