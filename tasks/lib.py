@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from tasks.models import Employee, Task
+from tasks.models import Employee, Task, Project, Sprint
 
 
 class PmPermissionMixin:
@@ -31,6 +31,7 @@ def get_employee_tasks(employee, include_self=True):
             r.extend(_r)
     return r
 
+
 def delay_tasks():
     Task.objects.filter(
         state__in=('to-do', 'in_progress', 'postponed'),
@@ -42,3 +43,26 @@ def delay_tasks():
         deadline__lt=datetime.now()
     ).update(state='late')
 
+
+def delay_projects():
+    Project.objects.filter(
+        status__in=('open', 'in_progress'),
+        redline__lt=datetime.now()
+    ).update(status='delay')
+
+    Project.objects.filter(
+        status__in=('open', 'in_progress', 'delay'),
+        date_end__lt=datetime.now()
+    ).update(status='late')
+
+
+def delay_sprints():
+    Sprint.objects.filter(
+        status__in=('open', 'in_progress'),
+        redline__lt=datetime.now()
+    ).update(status='delay')
+
+    Sprint.objects.filter(
+        status__in=('open', 'in_progress', 'delay'),
+        date_end__lt=datetime.now()
+    ).update(status='late')

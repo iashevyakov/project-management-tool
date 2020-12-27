@@ -5,8 +5,9 @@ from django.conf import settings
 PROJECT_SPRINT_STATUSES = (
     ('open', 'Not started'),
     ('in_progress', 'In progress'),
+    ('closed', 'Completed'),
     ('delay', 'Delayed'),
-    ('closed', 'Completed')
+    ('late', 'Being late'),
 )
 
 
@@ -98,13 +99,12 @@ class Task(models.Model):
 
     sub_tasks = models.ManyToManyField('Task', related_name='parent_task', verbose_name='Subtasks', blank=True)
 
-    def __str__(self):
-        return f"[{self.project.short_name}]-{self.title}"
-        # return f"{self.title} | Project: {self.project.title} | Sprint: {self.sprint.title} | Status: {self.state} | Priority: {self.priority}"
-
     @property
     def number(self):
         return f"{self.project.short_name}-{self.id}"
+
+    def __str__(self):
+        return f"[{self.number}] {self.title} | Assignee: {self.employee}"
 
 
 ROLES = (

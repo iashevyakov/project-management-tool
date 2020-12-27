@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 
 from adminfilters.multiselect import UnionFieldListFilter
 from django.contrib import admin, auth
@@ -6,11 +6,13 @@ from django.core.mail import send_mail
 from django.db import models
 from django.forms import Textarea
 from django import forms
+from django.utils import timezone
 
 from pm.settings import email, EMAIL_HOST_USER
 from .filters import EmployeeFilter, ProjectFilter, SprintFilter, RoleFilter
 from .forms import TaskForm, SprintForm, ProjectForm
-from .lib import PmPermissionMixin, get_employee_tasks, get_employee_subordinates, delay_tasks
+from .lib import PmPermissionMixin, get_employee_tasks, get_employee_subordinates, delay_tasks, delay_sprints, \
+    delay_projects
 from .models import Task, Item, Employee, Project, Sprint, Dates
 from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
 
@@ -83,8 +85,21 @@ class ProjectAdmin(admin.ModelAdmin, PmPermissionMixin):
         super().save_model(request, obj, form, change)
 
     def get_queryset(self, request):
+        delay_projects()
         queryset = Project.objects.filter(created_by=request.user)
         return queryset
+
+    def render_change_form(self, request, context, *args, **kwargs):
+        if kwargs['obj']:
+            if kwargs['obj'].status in ('open', 'in_progress') and kwargs[
+                'obj'].redline <= date.today():
+                kwargs['obj'].status = 'delay'
+                kwargs['obj'].save()
+            elif kwargs['obj'].status in ('open', 'in_progress', 'delay') and kwargs[
+                'obj'].date_end <= date.today():
+                kwargs['obj'].status = 'late'
+                kwargs['obj'].save()
+        return super(ProjectAdmin, self).render_change_form(request, context, *args, **kwargs)
 
     def has_module_permission(self, request):
         return self.only_for_pm(request)
@@ -139,6 +154,18 @@ class SprintAdmin(admin.ModelAdmin, PmPermissionMixin):
         return fieldsets
 
     def render_change_form(self, request, context, *args, **kwargs):
+        if kwargs['obj']:
+            print(kwargs['obj'].redline)
+            print(kwargs['obj'].date_end)
+            print(date.today())
+            if kwargs['obj'].status in ('open', 'in_progress') and kwargs[
+                'obj'].redline <= date.today():
+                kwargs['obj'].status = 'delay'
+                kwargs['obj'].save()
+            elif kwargs['obj'].status in ('open', 'in_progress', 'delay') and kwargs[
+                'obj'].date_end <= date.today():
+                kwargs['obj'].status = 'late'
+                kwargs['obj'].save()
         context['adminform'].form.fields['project'].queryset = request.user.created_projects.all()
         return super(SprintAdmin, self).render_change_form(request, context, *args, **kwargs)
 
@@ -148,6 +175,7 @@ class SprintAdmin(admin.ModelAdmin, PmPermissionMixin):
         super().save_model(request, obj, form, change)
 
     def get_queryset(self, request):
+        delay_sprints()
         queryset = Sprint.objects.filter(created_by=request.user)
         return queryset
 
@@ -258,12 +286,14 @@ class TaskAdmin(admin.ModelAdmin):
             context['adminform'].form.fields['project'].queryset = request.user.employee_projects.all().union(
                 request.user.created_projects.all())
             if kwargs['obj']:
+                print(timezone.now())
+                print(kwargs['obj'].redline)
                 if kwargs['obj'].state in ('to-do', 'in_progress', 'postponed') and kwargs[
-                    'obj'].redline <= datetime.now():
+                    'obj'].redline <= timezone.now():
                     kwargs['obj'].state = 'delay'
                     kwargs['obj'].save()
                 elif kwargs['obj'].state in ('to-do', 'in_progress', 'postponed', 'delay') and kwargs[
-                    'obj'].deadline <= datetime.now():
+                    'obj'].deadline <= timezone.now():
                     kwargs['obj'].state = 'late'
                     kwargs['obj'].save()
                 project_tasks = kwargs['obj'].project.project_tasks.all()
