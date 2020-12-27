@@ -4,7 +4,7 @@ from adminfilters.multiselect import UnionFieldListFilter
 from django.contrib import admin, auth
 from django.core.mail import send_mail
 from django.db import models
-from django.forms import Textarea
+from django.forms import Textarea, CheckboxSelectMultiple
 from django import forms
 from django.utils import timezone
 
@@ -209,7 +209,7 @@ class TaskAdmin(admin.ModelAdmin):
     )
 
     form = TaskForm
-    filter_horizontal = ('sub_tasks',)
+    # filter_horizontal = ('sub_tasks',)
 
     ordering = ('-created_at',)
     readonly_fields = ['created_at', 'last_modified', 'created_by']
@@ -218,7 +218,7 @@ class TaskAdmin(admin.ModelAdmin):
     formfield_overrides = {
         models.TextField: {
             'widget': Textarea(attrs={'rows': 4, 'cols': 32})
-        }
+        },
     }
 
     def get_fieldsets(self, request, obj=None):
@@ -311,7 +311,9 @@ class TaskAdmin(admin.ModelAdmin):
             else:
                 # pass
                 context['adminform'].form.fields['employee'].queryset = Employee.objects.none()
-                # context['adminform'].form.fields['sub_tasks'].queryset = Task.objects.none()
+                context['adminform'].form.fields['sub_tasks'].queryset = Task.objects.none()
+                # Task.objects.filter(
+                # id__in=[task.id for task in get_employee_tasks(request.user, include_self=False)])
                 context['adminform'].form.fields['sprint'].queryset = Sprint.objects.none()
         else:
             if kwargs['obj'].state in ('to-do', 'in_progress', 'postponed') and kwargs[
