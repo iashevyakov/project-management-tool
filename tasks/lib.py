@@ -1,4 +1,6 @@
-from tasks.models import Employee
+from datetime import datetime
+
+from tasks.models import Employee, Task
 
 
 class PmPermissionMixin:
@@ -28,3 +30,15 @@ def get_employee_tasks(employee, include_self=True):
         if 0 < len(_r):
             r.extend(_r)
     return r
+
+def delay_tasks():
+    Task.objects.filter(
+        state__in=('to-do', 'in_progress', 'postponed'),
+        redline__lt=datetime.now()
+    ).update(state='delay')
+
+    Task.objects.filter(
+        state__in=('to-do', 'in_progress', 'postponed', 'delay'),
+        deadline__lt=datetime.now()
+    ).update(state='late')
+

@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from adminfilters.multiselect import UnionFieldListFilter
 from django.contrib import admin, auth
 from django.core.mail import send_mail
@@ -8,7 +10,7 @@ from django import forms
 from pm.settings import email, EMAIL_HOST_USER
 from .filters import EmployeeFilter, ProjectFilter, SprintFilter, RoleFilter
 from .forms import TaskForm, SprintForm, ProjectForm
-from .lib import PmPermissionMixin, get_employee_tasks, get_employee_subordinates
+from .lib import PmPermissionMixin, get_employee_tasks, get_employee_subordinates, delay_tasks
 from .models import Task, Item, Employee, Project, Sprint, Dates
 from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
 
@@ -247,6 +249,7 @@ class TaskAdmin(admin.ModelAdmin):
             return super(TaskAdmin, self).get_readonly_fields(request, obj)
 
     def get_queryset(self, request):
+        delay_tasks()
         task_ids = [task.id for task in get_employee_tasks(request.user)]
         return Task.objects.filter(id__in=task_ids)
 
@@ -255,7 +258,14 @@ class TaskAdmin(admin.ModelAdmin):
             context['adminform'].form.fields['project'].queryset = request.user.employee_projects.all().union(
                 request.user.created_projects.all())
             if kwargs['obj']:
-
+                if kwargs['obj'].state in ('to-do', 'in_progress', 'postponed') and kwargs[
+                    'obj'].redline <= datetime.now():
+                    kwargs['obj'].state = 'delay'
+                    kwargs['obj'].save()
+                elif kwargs['obj'].state in ('to-do', 'in_progress', 'postponed', 'delay') and kwargs[
+                    'obj'].deadline <= datetime.now():
+                    kwargs['obj'].state = 'late'
+                    kwargs['obj'].save()
                 project_tasks = kwargs['obj'].project.project_tasks.all()
                 tasks = project_tasks.filter(
                     id__in=[task.id for task in get_employee_tasks(request.user, include_self=False)])
@@ -274,6 +284,14 @@ class TaskAdmin(admin.ModelAdmin):
                 # context['adminform'].form.fields['sub_tasks'].queryset = Task.objects.none()
                 context['adminform'].form.fields['sprint'].queryset = Sprint.objects.none()
         else:
+            if kwargs['obj'].state in ('to-do', 'in_progress', 'postponed') and kwargs[
+                'obj'].redline < datetime.now():
+                kwargs['obj'].state = 'delay'
+                kwargs['obj'].save()
+            elif kwargs['obj'].state in ('to-do', 'in_progress', 'postponed', 'delay') and kwargs[
+                'obj'].deadline < datetime.now():
+                kwargs['obj'].state = 'late'
+                kwargs['obj'].save()
             project_tasks = kwargs['obj'].project.project_tasks.all()
             tasks = project_tasks.filter(
                 id__in=[task.id for task in get_employee_tasks(request.user, include_self=False)])

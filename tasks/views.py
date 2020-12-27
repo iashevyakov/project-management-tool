@@ -1,9 +1,6 @@
 import json
 
 from django.http import HttpResponse
-from django.shortcuts import render
-
-# Create your views here.
 from tasks.lib import get_employee_subordinates, get_employee_tasks
 from tasks.models import Project
 
