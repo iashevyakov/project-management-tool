@@ -26,9 +26,20 @@
                     var tasks_options = '';
                     for (var i = 0; i < j[2].length; i++) {
                         tasks_options +=
-                            '<option value="' + j[2][i][0] + '">' + j[2][i][1] + "</option>";
+                            '<option value="' + j[2][i][0] + '" title="' + j[2][i][1] + '">' + j[2][i][1] + "</option>";
                     }
-                    $("select#id_sub_tasks").html(tasks_options);
+                    if (tasks_options) {
+                        $("select#id_sub_tasks_from").html(tasks_options);
+                        $("select#id_sub_tasks_to").find('option').remove();
+
+
+                    } else {
+                        console.log("empty");
+                        $("select#id_sub_tasks_from").find('option').remove();
+                        $("select#id_sub_tasks_to").find('option').remove();
+
+                    }
+                    {#$("select#id_sub_tasks_from").html(tasks_options);#}
                 });
             });
         });

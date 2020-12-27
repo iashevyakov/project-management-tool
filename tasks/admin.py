@@ -7,6 +7,7 @@ from django import forms
 
 from pm.settings import email, EMAIL_HOST_USER
 from .filters import EmployeeFilter, ProjectFilter, SprintFilter, RoleFilter
+from .forms import TaskForm, SprintForm, ProjectForm
 from .lib import PmPermissionMixin, get_employee_tasks, get_employee_subordinates
 from .models import Task, Item, Employee, Project, Sprint, Dates
 from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
@@ -45,6 +46,8 @@ class ProjectAdmin(admin.ModelAdmin, PmPermissionMixin):
         'date_end',
         'status'
     )
+
+    form = ProjectForm
 
     ordering = ('-created_at',)
     readonly_fields = ('created_at', 'last_modified', 'created_by')
@@ -105,6 +108,8 @@ class SprintAdmin(admin.ModelAdmin, PmPermissionMixin):
         'status',
     )
 
+    form = SprintForm
+
     ordering = ('-created_at',)
     readonly_fields = ('created_at', 'last_modified', 'created_by')
 
@@ -157,21 +162,6 @@ class SprintAdmin(admin.ModelAdmin, PmPermissionMixin):
         return self.only_for_pm(request)
 
 
-class TaskForm(forms.ModelForm):
-    class Meta:
-        model = Task
-        fields = '__all__'
-
-    def clean(self):
-        super(TaskForm, self).clean()
-        deadline = self.cleaned_data.get('deadline', '')
-        redline = self.cleaned_data.get('redline', '')
-
-        if redline and deadline and redline > deadline:
-            raise forms.ValidationError("Deadline must be greater (or equal) than Redline (`To be completed`)")
-        return self.cleaned_data
-
-
 class TaskAdmin(admin.ModelAdmin):
     list_display = (
         'number', 'title', 'project', 'sprint', 'employee', 'created_at', 'redline', 'deadline', 'priority', 'state')
@@ -189,7 +179,7 @@ class TaskAdmin(admin.ModelAdmin):
     )
 
     form = TaskForm
-    # filter_vertical = ('sub_tasks',)
+    filter_horizontal = ('sub_tasks',)
 
     ordering = ('-created_at',)
     readonly_fields = ['created_at', 'last_modified', 'created_by']
@@ -279,8 +269,9 @@ class TaskAdmin(admin.ModelAdmin):
                 context['adminform'].form.fields['sub_tasks'].queryset = tasks
 
             else:
+                # pass
                 context['adminform'].form.fields['employee'].queryset = Employee.objects.none()
-                context['adminform'].form.fields['sub_tasks'].queryset = Task.objects.none()
+                # context['adminform'].form.fields['sub_tasks'].queryset = Task.objects.none()
                 context['adminform'].form.fields['sprint'].queryset = Sprint.objects.none()
         else:
             project_tasks = kwargs['obj'].project.project_tasks.all()
