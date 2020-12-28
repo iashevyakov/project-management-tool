@@ -91,12 +91,13 @@ class ProjectAdmin(admin.ModelAdmin, PmPermissionMixin):
 
     def render_change_form(self, request, context, *args, **kwargs):
         if kwargs['obj']:
-            if kwargs['obj'].redline and kwargs['obj'].status in ('open', 'in_progress') and kwargs[
-                'obj'].redline <= date.today():
+            if kwargs['obj'].redline and \
+                    kwargs['obj'].status in ('open', 'in_progress') and \
+                    kwargs['obj'].redline <= date.today():
                 kwargs['obj'].status = 'delay'
                 kwargs['obj'].save()
-            elif kwargs['obj'].status in ('open', 'in_progress', 'delay') and kwargs[
-                'obj'].date_end <= date.today():
+            elif kwargs['obj'].status in ('open', 'in_progress', 'delay') and \
+                    kwargs['obj'].date_end <= date.today():
                 kwargs['obj'].status = 'late'
                 kwargs['obj'].save()
         return super(ProjectAdmin, self).render_change_form(request, context, *args, **kwargs)
@@ -158,12 +159,13 @@ class SprintAdmin(admin.ModelAdmin, PmPermissionMixin):
             print(kwargs['obj'].redline)
             print(kwargs['obj'].date_end)
             print(date.today())
-            if kwargs['obj'].redline and kwargs['obj'].status in ('open', 'in_progress') and kwargs[
-                'obj'].redline <= date.today():
+            if kwargs['obj'].redline and \
+                    kwargs['obj'].status in ('open', 'in_progress') and \
+                    kwargs['obj'].redline <= date.today():
                 kwargs['obj'].status = 'delay'
                 kwargs['obj'].save()
-            elif kwargs['obj'].status in ('open', 'in_progress', 'delay') and kwargs[
-                'obj'].date_end <= date.today():
+            elif kwargs['obj'].status in ('open', 'in_progress', 'delay') and \
+                    kwargs['obj'].date_end <= date.today():
                 kwargs['obj'].status = 'late'
                 kwargs['obj'].save()
         context['adminform'].form.fields['project'].queryset = request.user.created_projects.all()
