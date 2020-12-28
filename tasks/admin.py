@@ -319,11 +319,11 @@ class TaskAdmin(admin.ModelAdmin):
                 context['adminform'].form.fields['sprint'].queryset = Sprint.objects.none()
         else:
             if kwargs['obj'].state in ('to-do', 'in_progress', 'postponed') and kwargs[
-                'obj'].redline < datetime.now():
+                'obj'].redline < timezone.now():
                 kwargs['obj'].state = 'delay'
                 kwargs['obj'].save()
             elif kwargs['obj'].state in ('to-do', 'in_progress', 'postponed', 'delay') and kwargs[
-                'obj'].deadline < datetime.now():
+                'obj'].deadline < timezone.now():
                 kwargs['obj'].state = 'late'
                 kwargs['obj'].save()
             project_tasks = kwargs['obj'].project.project_tasks.all()
