@@ -47,8 +47,9 @@ class ProjectAdmin(admin.ModelAdmin, PmPermissionMixin):
 
     list_filter = (
         'date_start',
+        'redline',
         'date_end',
-        'status'
+        'status',
     )
 
     form = ProjectForm
@@ -122,6 +123,7 @@ class SprintAdmin(admin.ModelAdmin, PmPermissionMixin):
 
     list_filter = (
         'date_start',
+        'redline',
         'date_end',
         'status',
     )
