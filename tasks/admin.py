@@ -59,7 +59,7 @@ class ProjectAdmin(admin.ModelAdmin, PmPermissionMixin):
     fieldsets = (  # Edition form
         (None, {'fields': ('title', 'short_name', 'date_start', 'redline', 'date_end', 'status',
                            'employees')}),
-        ("Доп.информация", {'fields': (('created_at', 'last_modified'), 'created_by'), 'classes': ('collapse',)}),
+        ("Additional information", {'fields': (('created_at', 'last_modified'), 'created_by'), 'classes': ('collapse',)}),
     )
 
     formfield_overrides = {
@@ -134,7 +134,7 @@ class SprintAdmin(admin.ModelAdmin, PmPermissionMixin):
     fieldsets = (  # Edition form
         (None, {'fields': ('project', 'title', 'date_start', 'redline', 'date_end',
                            'status')}),
-        ("Доп.информация", {'fields': (('created_at', 'last_modified'), 'created_by'), 'classes': ('collapse',)}),
+        ("Additional information", {'fields': (('created_at', 'last_modified'), 'created_by'), 'classes': ('collapse',)}),
     )
 
     formfield_overrides = {
@@ -239,7 +239,7 @@ class TaskAdmin(admin.ModelAdmin):
                  {'fields': ['project', 'sprint', 'title', 'description', 'state', 'priority', 'employee', 'redline',
                              'deadline',
                              'sub_tasks']}),
-                ("Доп.информация",
+                ("Additional information",
                  {'fields': (('created_at', 'last_modified'), 'created_by'), 'classes': ('collapse',)}),
             )
 
