@@ -207,7 +207,7 @@ class TaskAdmin(admin.ModelAdmin):
         ('sprint', SprintFilter),
         ('state', UnionFieldListFilter),
         ('priority', UnionFieldListFilter),
-        'deadline',
+        'redline'
     )
 
     form = TaskForm
