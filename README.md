@@ -2,7 +2,7 @@
 
 **Установить virtualenv**
 
-**git clone https://github.com/iashevyakov/pmtool.git**
+**git clone https://github.com/iashevyakov/project-management-tool.git**
 
 
 ### **В корне проекта:**
@@ -17,13 +17,25 @@ python3 manage.py runserver
 
 ### **Логины и пароли:**
 
-**Для PM**: MainPM - MainPM
+**Project Manager**: manager - projectman
 
-**Для Dev Lead**: arsent - arsent
+**Dev Lead**: devlead - devlead
 
-**Для Area Dev Lead**: ivan - ronaldo77
+**Dev Area Lead**: devarealead - devarealead
 
-**Для Dev**: dev - ronaldo77
+**Developer**: developer - developer
+
+**Analyst Lead**: analystlead - analystlead
+
+**Analyst Area Lead**: analystarealead - analystarealead
+
+**Analyst**: analyst - analyst
+
+**QA Lead**: qalead - qalead
+
+**QA Area Lead**: qaarealead - qaarealead
+
+**QA engineer**: qaengineer - qaengineer
 
 
 
